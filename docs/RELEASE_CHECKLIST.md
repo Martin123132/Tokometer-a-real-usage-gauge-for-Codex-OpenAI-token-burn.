@@ -1,7 +1,8 @@
 # Tokometer Release Checklist
 
 Tokometer is Windows-first for now. Every public release should ship an installer,
-a portable build, SHA256 checksums, release notes, and a passing verification run.
+a portable build, SHA256 checksums, a release manifest, release notes, and a
+passing verification run.
 
 ## Before Packaging
 
@@ -40,7 +41,12 @@ data drive for local release builds. Expected Windows outputs:
 
 - NSIS installer
 - Portable executable
-- `.sha256` checksum files when produced by `npm run release:verify -- --write`
+- Per-file `.sha256` checksum files when produced by `npm run release:verify -- --write`
+- `SHA256SUMS.txt` aggregate checksum index
+- `release-manifest.json` with version, commit SHA, license notice, artifact
+  names, sizes, and SHA256 digests
+- No `builder-debug.yml` in uploaded artifacts because it can contain local
+  build paths.
 
 For a local checksum spot check in PowerShell:
 
@@ -51,8 +57,10 @@ Get-FileHash -Algorithm SHA256 release\*
 For the project verifier:
 
 ```bash
-npm run release:verify
+npm run release:verify -- --write
 ```
+
+Run without `-- --write` when you only want to verify and print checksums.
 
 ## GitHub Release
 
@@ -63,7 +71,10 @@ npm run release:verify
 - Confirm the GitHub release contains:
   - Installer
   - Portable artifact
-  - SHA256 checksum files
+  - Per-file SHA256 checksum files
+  - `SHA256SUMS.txt`
+  - `release-manifest.json`
+  - No `builder-debug.yml`
   - Generated or hand-edited release notes
 
 ## Release Notes Minimum

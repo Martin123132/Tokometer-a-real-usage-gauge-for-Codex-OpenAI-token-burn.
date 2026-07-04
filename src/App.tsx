@@ -254,8 +254,10 @@ const legacyWeeklyMeterStorageKey = 'token-gauge-meter'
 const calibrationHistoryStorageKey = 'tokometer-calibration-history-v1'
 const onboardingDismissedStorageKey = 'tokometer-onboarding-dismissed-v1'
 const calibrationHistoryLimit = 80
-const appVersion = '0.1.0'
-const releaseChannel = 'local-first'
+const appVersion = __TOKOMETER_VERSION__
+const releaseChannel = __TOKOMETER_RELEASE_CHANNEL__
+const buildSha = __TOKOMETER_BUILD_SHA__
+const buildDate = __TOKOMETER_BUILD_DATE__
 const diagnosticsSchema = 'tokometer-diagnostics-v1'
 
 function App() {
@@ -889,7 +891,7 @@ function SupportBundlePreview({
   onDownload: () => void
 }) {
   const included = [
-    `App metadata: Tokometer v${appVersion}, release channel, browser runtime.`,
+    `App metadata: Tokometer v${appVersion}, release channel, build identity, browser runtime.`,
     `Redacted paths: Codex home and history store with username removed.`,
     `Scan metrics: ${data?.source.scanDurationMs ?? 0}ms, ${data?.source.filesScanned ?? 0} files, ${data?.source.filesFromCache ?? 0} exact cache hits, ${data?.source.filesIncremental ?? 0} incremental parses.`,
     `Parser health: line counts, skipped non-token lines, malformed candidates, reset/anomaly counts.`,
@@ -950,6 +952,8 @@ function SupportBundlePreview({
                 name: 'Tokometer',
                 version: appVersion,
                 releaseChannel,
+                buildSha: shortSha(buildSha),
+                buildDate,
               },
               source: preview?.source ?? null,
               scanStatus: preview?.scanStatus ?? null,
@@ -1175,6 +1179,8 @@ function SettingsView({
         <div className="release-list">
           <ReleaseLine label="Version" value={`v${appVersion}`} />
           <ReleaseLine label="Channel" value={releaseChannel} />
+          <ReleaseLine label="Build" value={formatBuildDate(buildDate)} />
+          <ReleaseLine label="Commit" value={shortSha(buildSha)} />
           <ReleaseLine label="Dev shell" value="npm run desktop" />
           <ReleaseLine label="Prod shell" value="npm run desktop:prod" />
           <ReleaseLine label="Installer" value="npm run dist" />
@@ -2206,6 +2212,8 @@ function createDiagnosticsBundle(
       name: 'Tokometer',
       version: appVersion,
       releaseChannel,
+      buildSha,
+      buildDate,
       mode: import.meta.env.MODE,
       userAgent: window.navigator.userAgent,
     },
@@ -2283,7 +2291,7 @@ function createMarkdownReport(data: UsageData) {
   return [
     '# Tokometer Report',
     '',
-    `Version: v${appVersion} (${releaseChannel})`,
+    `Version: v${appVersion} (${releaseChannel}, ${shortSha(buildSha)})`,
     `Generated: ${data.source.generatedAt}`,
     `Codex home: ${data.source.codexHome}`,
     `History store: ${data.source.dataDir}`,
@@ -2360,6 +2368,21 @@ function formatSignedPoints(value?: number | null) {
     return 'unknown'
   }
   return `${value >= 0 ? '+' : ''}${value.toFixed(1)} pts`
+}
+
+function shortSha(value: string) {
+  if (!value || value === 'unknown') {
+    return 'unknown'
+  }
+  return value.slice(0, 12)
+}
+
+function formatBuildDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value || 'unknown'
+  }
+  return date.toLocaleDateString()
 }
 
 function formatDate(value?: string | null) {

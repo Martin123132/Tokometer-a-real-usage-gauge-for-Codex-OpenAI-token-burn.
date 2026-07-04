@@ -188,6 +188,15 @@ npm run dist
 
 Artifacts are written to `release/`.
 
+After a local package build, run:
+
+```bash
+npm run release:verify -- --write
+```
+
+That verifies the installer/portable artifacts and writes per-file `.sha256`
+checksums, `SHA256SUMS.txt`, and `release-manifest.json`.
+
 See [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) for the Windows-first release checklist.
 
 CI is defined in `.github/workflows/ci.yml` and runs lint, tests, build, and smoke scenarios on pushes and pull requests to `main`.
